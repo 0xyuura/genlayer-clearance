@@ -4,11 +4,11 @@
 will ever do; the model may only propose, never widen.**
 
 Live on Testnet Bradbury at
-[`0xFB8d9BD944E5ac063880b7D2B5D4c9395Ef6B5c8`](https://explorer-bradbury.genlayer.com/address/0xFB8d9BD944E5ac063880b7D2B5D4c9395Ef6B5c8).
+[`0xfC5f63C0D2badb94d4531FE100c0cB94cdbA130a`](https://explorer-bradbury.genlayer.com/address/0xfC5f63C0D2badb94d4531FE100c0cB94cdbA130a).
 Two unrelated consumer contracts execute cleared actions on chain; see
 [Exercised on chain](#exercised-on-chain).
 
-Call it without a local setup: [open it in GenLayer Studio](https://studio.genlayer.com/?import-contract=0xFB8d9BD944E5ac063880b7D2B5D4c9395Ef6B5c8)
+Call it without a local setup: [open it in GenLayer Studio](https://studio.genlayer.com/?import-contract=0xfC5f63C0D2badb94d4531FE100c0cB94cdbA130a)
 
 ## The problem
 
