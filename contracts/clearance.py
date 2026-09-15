@@ -46,9 +46,11 @@ def _name_ok(value: typing.Any) -> bool:
             and set(value) <= _NAME_CHARS)
 
 
-def _address_ok(value: typing.Any) -> bool:
-    return (isinstance(value, str) and len(value) == 42 and value[:2] == "0x"
-            and set(value[2:].lower()) <= _HEX)
+def _address_text(value: typing.Any) -> str:
+    """Addresses reach a contract as text or as a calldata address object."""
+    text = value if isinstance(value, str) else str(value)
+    ok = len(text) == 42 and text[:2] == "0x" and set(text[2:].lower()) <= _HEX
+    return text.lower() if ok else ""
 
 
 def _parse_param(raw: typing.Any) -> dict:
@@ -76,11 +78,10 @@ def _parse_param(raw: typing.Any) -> dict:
         out["choices"] = list(choices)
     else:
         allow = raw["allow"]
-        if (not isinstance(allow, list) or not 1 <= len(allow) <= MAX_ALLOW
-                or any(not _address_ok(a) for a in allow)):
+        if not isinstance(allow, list) or not 1 <= len(allow) <= MAX_ALLOW:
             raise ValueError("PARAM_ALLOW")
-        lowered = [a.lower() for a in allow]
-        if len(set(lowered)) != len(lowered):
+        lowered = [_address_text(a) for a in allow]
+        if any(not a for a in lowered) or len(set(lowered)) != len(lowered):
             raise ValueError("PARAM_ALLOW")
         out["allow"] = lowered
     return out
@@ -171,11 +172,12 @@ def validate_params(action: dict, params: typing.Any) -> dict:
                 raise ValueError("PARAM_CHOICE")
             out[spec["name"]] = value
         else:
-            if not isinstance(value, str):
+            if isinstance(value, (int, float, bool)) or value is None:
                 raise ValueError("PARAM_TYPE")
-            if not _address_ok(value) or value.lower() not in spec["allow"]:
+            text = _address_text(value)
+            if not text or text not in spec["allow"]:
                 raise ValueError("PARAM_ALLOW")
-            out[spec["name"]] = value.lower()
+            out[spec["name"]] = text
     return out
 
 

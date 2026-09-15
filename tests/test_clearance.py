@@ -106,6 +106,22 @@ class SchemaRules(unittest.TestCase):
         parsed = cl.parse_schema(raw)
         self.assertEqual(parsed["actions"][0]["params"][0]["allow"], [TREASURY, PAYROLL])
 
+    def test_addresses_may_arrive_as_calldata_objects(self):
+        class CalldataAddress:
+            def __init__(self, text):
+                self.text = text
+
+            def __str__(self):
+                return self.text
+
+        raw = treasury_raw()
+        raw["actions"][0]["params"][0]["allow"] = [CalldataAddress(TREASURY), PAYROLL]
+        parsed = cl.parse_schema(raw)
+        self.assertEqual(parsed["actions"][0]["params"][0]["allow"], [TREASURY, PAYROLL])
+        action = cl.action_of(parsed, "withdraw")
+        self.assertEqual(cl.validate_params(action, {"to": CalldataAddress(TREASURY), "amount": 5}),
+                         {"amount": 5, "to": TREASURY})
+
     def test_action_names_and_lookup(self):
         self.assertEqual(cl.action_names(schema()), ["withdraw", "pause"])
         self.assertIsNone(cl.action_of(schema(), "drain"))
