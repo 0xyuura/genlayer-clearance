@@ -215,6 +215,21 @@ class Decision(unittest.TestCase):
             self.assertEqual(sorted(self.decide(answer)), sorted(cl.RESULT_FIELDS))
 
 
+class ProposalInput(unittest.TestCase):
+    def test_a_proposal_may_arrive_as_json_text_or_an_object(self):
+        raw = {"action": "withdraw", "params": {"to": TREASURY, "amount": 5}}
+        self.assertEqual(cl.proposal_from_input(json.dumps(raw)), raw)
+        self.assertEqual(cl.proposal_from_input(raw), raw)
+        for bad in ("not json", "[1]", 5, None):
+            with self.assertRaises(ValueError):
+                cl.proposal_from_input(bad)
+
+    def test_the_check_is_the_same_one_the_model_path_uses(self):
+        over = cl.proposal_from_input('{"action": "withdraw", "params": {"to": "' + TREASURY
+                                      + '", "amount": 750}}')
+        self.assertEqual(cl.decide(schema(), over)["reason"], "PARAM_RANGE")
+
+
 class Prompt(unittest.TestCase):
     def test_prompt_states_every_action_and_its_rules(self):
         prompt = cl.request_prompt(schema(), "send 200 to the treasury wallet")

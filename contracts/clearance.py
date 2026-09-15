@@ -193,6 +193,18 @@ def read_proposal(raw: typing.Any) -> tuple:
     return raw["action"].strip(), raw["params"]
 
 
+def proposal_from_input(value: typing.Any) -> dict:
+    """A proposal may arrive as JSON text or as a calldata object."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            raise ValueError("PROPOSAL_NOT_JSON")
+    if not isinstance(value, dict):
+        raise ValueError("PROPOSAL_UNREADABLE")
+    return value
+
+
 def decide(schema: dict, raw: typing.Any) -> dict:
     """Turn a proposal into a cleared action or a named refusal."""
     name, params = read_proposal(raw)
@@ -366,6 +378,16 @@ class Clearance(gl.Contract):
     def schema_id_for(self, schema: typing.Any) -> str:
         try:
             return schema_id(canonical_json(schema_from_input(schema)))
+        except ValueError as err:
+            _fail(str(err))
+
+    @gl.public.view
+    def check_proposal(self, schema_id: str, proposal: typing.Any) -> str:
+        """Run the checks on any proposal, with no model. The same code the
+        model path uses, so anyone can see exactly which rule would stop it."""
+        schema = json.loads(str(self._schema(str(schema_id)).canon))
+        try:
+            return json.dumps(decide(schema, proposal_from_input(proposal)), sort_keys=True)
         except ValueError as err:
             _fail(str(err))
 
